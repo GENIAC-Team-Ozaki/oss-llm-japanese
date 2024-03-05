@@ -25,3 +25,5 @@ target-version = "py39"
 flake8-tidy-imports = { ban-relative-imports = "all" }  # 相対インポートの禁止(可読性のため)
 pydocstyle = { convention = "google" }  # Googleスタイルのdocstring
 
+[tool.poetry.scripts]
+initial-run = "oss_llm_japanese.main:initial_run"
