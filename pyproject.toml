@@ -1,0 +1,27 @@
+[tool.poetry]
+name = "oss-llm-japanese"
+version = "0.1.0"
+description = ""
+authors = ["toma tanaka <ulti4929@gmail.com>"]
+license = "Apache-2.0 license"
+readme = "README.md"
+packages = [{include = "oss_llm_japanese"}]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.3.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+target-version = "py39"
+
+[tool.ruff.lint]
+flake8-tidy-imports = { ban-relative-imports = "all" }  # 相対インポートの禁止(可読性のため)
+pydocstyle = { convention = "google" }  # Googleスタイルのdocstring
+
