@@ -5,7 +5,7 @@ description = ""
 authors = ["toma tanaka <ulti4929@gmail.com>"]
 license = "Apache-2.0 license"
 readme = "README.md"
-packages = [{include = "oss_llm_japanese"}]
+packages = [{include = "src"}]
 
 [tool.poetry.dependencies]
 python = "^3.9"
