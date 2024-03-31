@@ -98,6 +98,8 @@ def reformat_and_filter_dataset(
         filter_fns.append(has_valid_avg_line_length())
         filter_fns.append(has_valid_alphanum_fraction())
         filter_fns.append(is_not_empty())
+    elif dataset_name == "test":
+        reformat_fn = reformat_data("text")
     else:
         raise ValueError(f"Unknown dataset name: {dataset_name}.")
 
@@ -122,7 +124,7 @@ def main() -> None:
     parser.add_argument(
         "DATASET_NAME",
         type=str,
-        choices=["ja_wiki", "en_wiki", "ja_cc", "en_pile", "code_stack"],
+        choices=["ja_wiki", "en_wiki", "ja_cc", "en_pile", "code_stack", "test"],
         help="Dataset name",
     )
     parser.add_argument(
