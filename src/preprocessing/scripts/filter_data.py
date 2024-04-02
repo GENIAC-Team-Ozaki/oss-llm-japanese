@@ -32,6 +32,12 @@ from filters import (
     reformat_data,
     remove_empty_parenthesis,
     remove_wikipedia_footnote,
+    has_below_duplicate_line_char_ratio,
+    has_below_duplicate_line_ratio,
+    has_below_duplicate_paragraph_char_ratio,
+    has_below_duplicate_paragraph_ratio,
+    has_below_max_ngram_ratio,
+    has_below_repeated_ngram_ratio,
 )
 
 logger = logging.getLogger(__name__)
@@ -100,6 +106,19 @@ def reformat_and_filter_dataset(
         filter_fns.append(is_not_empty())
     elif dataset_name == "test":
         reformat_fn = reformat_data("text")
+        filter_fns.append(has_below_duplicate_line_ratio())
+        filter_fns.append(has_below_duplicate_paragraph_ratio())
+        filter_fns.append(has_below_duplicate_line_char_ratio())
+        filter_fns.append(has_below_duplicate_paragraph_char_ratio())
+        filter_fns.append(has_below_max_ngram_ratio(n=2, max_ratio=0.20))
+        filter_fns.append(has_below_max_ngram_ratio(n=3, max_ratio=0.18))
+        filter_fns.append(has_below_max_ngram_ratio(n=4, max_ratio=0.16))
+        filter_fns.append(has_below_repeated_ngram_ratio(n=5, max_ratio=0.15))
+        filter_fns.append(has_below_repeated_ngram_ratio(n=6, max_ratio=0.14))
+        filter_fns.append(has_below_repeated_ngram_ratio(n=7, max_ratio=0.13))
+        filter_fns.append(has_below_repeated_ngram_ratio(n=8, max_ratio=0.12))
+        filter_fns.append(has_below_repeated_ngram_ratio(n=9, max_ratio=0.11))
+        filter_fns.append(has_below_repeated_ngram_ratio(n=10, max_ratio=0.10))
     else:
         raise ValueError(f"Unknown dataset name: {dataset_name}.")
 
