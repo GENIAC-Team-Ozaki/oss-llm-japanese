@@ -2,7 +2,9 @@ import math
 import typing
 import zlib
 from pathlib import Path
+import re
 from typing import Any, Callable
+import collections
 from urllib.parse import urlparse
 
 import regex
@@ -305,3 +307,107 @@ def remove_empty_parenthesis() -> Callable[..., dict[str, Any]]:
         return example
 
     return remove
+
+
+# 行の重複比率をチェックする関数
+def has_below_duplicate_line_ratio(
+    max_duplicate_ratio: float = 0.30,
+) -> Callable[..., bool]:
+    def judge(example: dict[str, Any]) -> bool:
+        lines = re.sub(r"\n+", "\n", example["text"]).strip().split("\n")
+        duplicate_count = sum(
+            (count) for line, count in collections.Counter(lines).items() if count > 1
+        )
+        duplicate_ratio = duplicate_count / len(lines) if lines else 0
+        return duplicate_ratio <= max_duplicate_ratio
+
+    return judge
+
+
+# 段落の重複比率をチェックする関数
+def has_below_duplicate_paragraph_ratio(
+    max_duplicate_ratio: float = 0.30,
+) -> Callable[..., bool]:
+    def judge(example: dict[str, Any]) -> bool:
+        paragraphs = example["text"].split("\n\n")
+        duplicate_count = sum(
+            (count)
+            for paragraph, count in collections.Counter(paragraphs).items()
+            if count > 1
+        )
+        duplicate_ratio = duplicate_count / len(paragraphs) if paragraphs else 0
+        return duplicate_ratio <= max_duplicate_ratio
+
+    return judge
+
+
+# 行における重複する文字数の比率をチェックする関数
+def has_below_duplicate_line_char_ratio(
+    max_duplicate_char_ratio: float = 0.20,
+) -> Callable[..., bool]:
+    def judge(example: dict[str, Any]) -> bool:
+        lines = re.sub(r"\n+", "\n", example["text"]).strip().split("\n")
+        all_chars = example["text"].replace("\n", "")
+        duplicate_chars_count = sum(
+            (count) * len(line)
+            for line, count in collections.Counter(lines).items()
+            if count > 1
+        )
+        duplicate_char_ratio = (
+            duplicate_chars_count / len(all_chars) if all_chars else 0
+        )
+        return duplicate_char_ratio <= max_duplicate_char_ratio
+
+    return judge
+
+
+# 段落における重複する文字数の比率をチェックする関数
+def has_below_duplicate_paragraph_char_ratio(
+    max_duplicate_char_ratio: float = 0.20,
+) -> Callable[..., bool]:
+    def judge(example: dict[str, Any]) -> bool:
+        paragraphs = example["text"].split("\n\n")
+        all_chars = example["text"].replace("\n", "")
+        duplicate_chars_count = sum(
+            (count) * len(paragraph.replace("\n", ""))
+            for paragraph, count in collections.Counter(paragraphs).items()
+            if count > 1
+        )
+        duplicate_char_ratio = (
+            duplicate_chars_count / len(all_chars) if all_chars else 0
+        )
+        return duplicate_char_ratio <= max_duplicate_char_ratio
+
+    return judge
+
+
+# 最頻出の n-gram の出現回数 / 全 n-gram の出現回数
+def has_below_max_ngram_ratio(n: int, max_ratio: float) -> Callable[..., bool]:
+    def judge(example: dict[str, Any]) -> bool:
+        text = example["text"].replace("\n", " ").replace("。", "")
+        ngrams = [text[i : i + n] for i in range(len(text) - n + 1)]
+        ngram_counts = collections.Counter(ngrams)
+        max_ngram_count = max(ngram_counts.values()) if ngram_counts else 0
+        total_ngram_count = sum(ngram_counts.values())
+        ratio = max_ngram_count / total_ngram_count if total_ngram_count > 0 else 0
+        return ratio <= max_ratio
+
+    return judge
+
+
+# 2 回以上出現する n-gram の総出現回数 / 全n-gram の総出現回数
+def has_below_repeated_ngram_ratio(
+    n: int, max_ratio: float, min_repeats: int = 2
+) -> Callable[..., bool]:
+    def judge(example: dict[str, Any]) -> bool:
+        text = example["text"].replace("\n", " ").replace("。", "")
+        ngrams = [text[i : i + n] for i in range(len(text) - n + 1)]
+        ngram_counts = collections.Counter(ngrams)
+        repeated_ngram_count = sum(
+            count for count in ngram_counts.values() if count >= min_repeats
+        )
+        total_ngram_count = sum(ngram_counts.values())
+        ratio = repeated_ngram_count / total_ngram_count if total_ngram_count > 0 else 0
+        return ratio <= max_ratio
+
+    return judge
