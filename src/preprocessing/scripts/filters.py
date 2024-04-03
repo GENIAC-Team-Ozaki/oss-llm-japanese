@@ -9,6 +9,7 @@ from urllib.parse import urlparse
 
 import regex
 from hojichar import Document
+from hojichar.core.filter_interface import Filter
 from hojichar.filters.document_filters import (
     AcceptJapanese,
     DiscardAds,
@@ -409,5 +410,46 @@ def has_below_repeated_ngram_ratio(
         total_ngram_count = sum(ngram_counts.values())
         ratio = repeated_ngram_count / total_ngram_count if total_ngram_count > 0 else 0
         return ratio <= max_ratio
+
+    return judge
+
+
+# 文章中の文の文字数の平均の割合によるフィルタリングのためのhojiChar
+class DiscardRareKutenBySwallow(Filter):
+    def __init__(
+        self,
+        min_average_sentence_length: int = 20,
+        max_average_sentence_length: int = 90,
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
+        super().__init__(*args, **kwargs)
+
+        self.max_average_sentence_length = max_average_sentence_length
+        self.min_average_sentence_length = min_average_sentence_length
+        self.kuten_pat = re.compile(r"。")
+
+    def apply(self, doc: Document) -> Document:
+        kuten_lst = self.kuten_pat.findall(doc.text)
+        min_kuten_num = len(doc.text) / self.max_average_sentence_length
+        max_kuten_num = len(doc.text) / self.min_average_sentence_length
+        if len(kuten_lst) < min_kuten_num or max_kuten_num < len(kuten_lst):
+            doc.is_rejected = True
+        return doc
+
+
+# 文章中の文の文字数の平均の割合によるフィルタリング
+def has_good_average_sentence_length_by_swallow(
+    min_average_sentence_length: int = 20,
+    max_average_sentence_length: int = 90,
+) -> Callable[..., bool]:
+    content_filter = DiscardRareKutenBySwallow(
+        min_average_sentence_length=min_average_sentence_length,
+        max_average_sentence_length=max_average_sentence_length,
+    )
+
+    def judge(example: dict[str, Any]) -> bool:
+        doc = content_filter.apply(Document(example["text"]))
+        return not doc.is_rejected
 
     return judge
