@@ -453,3 +453,15 @@ def has_good_average_sentence_length_by_swallow(
         return not doc.is_rejected
 
     return judge
+
+
+# 最も長い文の文字数が200文字以上でないかをチェックする関数
+def has_sentence_with_min_length(min_length: int = 200) -> Callable[..., bool]:
+    def judge(example: dict[str, Any]) -> bool:
+        sentences = re.split(r"。", example["text"].replace("\n", ""))
+        for sentence in sentences:
+            if len(sentence) >= min_length:
+                return False
+        return True
+
+    return judge
