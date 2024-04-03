@@ -39,6 +39,7 @@ from filters import (
     has_below_max_ngram_ratio,
     has_below_repeated_ngram_ratio,
     has_good_average_sentence_length_by_swallow,
+    has_sentence_with_min_length,
 )
 
 logger = logging.getLogger(__name__)
@@ -121,6 +122,7 @@ def reformat_and_filter_dataset(
         filter_fns.append(has_below_repeated_ngram_ratio(n=9, max_ratio=0.11))
         filter_fns.append(has_below_repeated_ngram_ratio(n=10, max_ratio=0.10))
         filter_fns.append(has_good_average_sentence_length_by_swallow())
+        filter_fns.append(has_sentence_with_min_length())
     else:
         raise ValueError(f"Unknown dataset name: {dataset_name}.")
 
