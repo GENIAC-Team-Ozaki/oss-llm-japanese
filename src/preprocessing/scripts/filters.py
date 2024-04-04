@@ -465,3 +465,11 @@ def has_sentence_with_min_length(min_length: int = 200) -> Callable[..., bool]:
         return True
 
     return judge
+
+
+# 最小文字数が400文字以上であるかをチェックする関数
+def has_documents_with_min_length(min_length: int = 400) -> Callable[..., bool]:
+    def judge(example: dict[str, Any]) -> bool:
+        return len(example["text"]) >= min_length
+
+    return judge
