@@ -77,11 +77,18 @@ def has_valid_avg_line_length(
 
 
 def has_valid_alphanum_fraction(
-    allowed_alphanum_fraction: float = 0.25,
+    allowed_alphanum_fraction: float = 0.5,
 ) -> Callable[..., bool]:
     def judge(example: dict[str, Any]) -> bool:
-        # https://github.com/togethercomputer/RedPajama-Data/blob/main/data_prep/github/github_run_filter.py
-        return example["meta"]["alphanum_fraction"] >= allowed_alphanum_fraction
+        if "alphanum_fraction" in set(example["meta"].keys()):
+            # https://github.com/togethercomputer/RedPajama-Data/blob/main/data_prep/github/github_run_filter.py
+            return example["meta"]["alphanum_fraction"] >= allowed_alphanum_fraction
+        else:
+            text = example["text"]
+            alphanum_count = len(re.findall(r"[a-zA-Z0-9]", text))
+            total_count = len(text)
+            alphanum_fraction = alphanum_count / total_count if total_count > 0 else 0.0
+            return alphanum_fraction >= allowed_alphanum_fraction
 
     return judge
 
