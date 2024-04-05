@@ -126,6 +126,12 @@ def reformat_and_filter_dataset(
         filter_fns.append(has_sentence_with_min_length())
         filter_fns.append(has_documents_with_min_length())
         filter_fns.append(has_valid_alphanum_fraction())
+    elif dataset_name == "cc":
+        reformat_fn = reformat_data("text")
+        # write me
+    elif dataset_name == "cuX":
+        reformat_fn = reformat_data("text")
+        # write me
     else:
         raise ValueError(f"Unknown dataset name: {dataset_name}.")
 
@@ -150,7 +156,16 @@ def main() -> None:
     parser.add_argument(
         "DATASET_NAME",
         type=str,
-        choices=["ja_wiki", "en_wiki", "ja_cc", "en_pile", "code_stack", "test"],
+        choices=[
+            "ja_wiki",
+            "en_wiki",
+            "ja_cc",
+            "en_pile",
+            "code_stack",
+            "test",
+            "cc",
+            "cuX",
+        ],
         help="Dataset name",
     )
     parser.add_argument(
