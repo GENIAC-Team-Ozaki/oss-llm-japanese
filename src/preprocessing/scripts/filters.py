@@ -15,6 +15,7 @@ from hojichar.filters.document_filters import (
     DiscardAds,
     DiscardRareKuten,
     NgWordsFilterJa,
+    MaskPersonalInformation,
 )
 
 BASE_PATH = Path(__file__).parent
@@ -480,3 +481,13 @@ def has_documents_with_min_length(min_length: int = 400) -> Callable[..., bool]:
         return len(example["text"]) >= min_length
 
     return judge
+
+
+# 電話番号，メールアドレスをマスクする関数
+def mask_phone_and_email() -> Callable[..., dict[str, Any]]:
+    mask_personal_info_filter = MaskPersonalInformation()
+    def mask(example: dict[str, Any]) -> dict[str, Any]:
+        example["text"] = mask_personal_info_filter.apply(Document(example["text"])).text
+        return example
+
+    return mask
