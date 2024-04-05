@@ -155,8 +155,8 @@ def reformat_and_filter_dataset(
     def apply_rephrasing_fns(element):
         for rephrasing_fn in rephrasing_fns:
             if not rephrasing_fn(element):
-                return {"rephrasing": False}
-        return {"rephrasing": True}
+                return {"rephrasing": True}
+        return {"rephrasing": False}
 
     dataset = dataset.map(apply_rephrasing_fns, batched=False)
     return dataset.filter(is_not_empty())
