@@ -125,6 +125,7 @@ def reformat_and_filter_dataset(
         filter_fns.append(has_below_repeated_ngram_ratio(n=9, max_ratio=0.11))
         filter_fns.append(has_below_repeated_ngram_ratio(n=10, max_ratio=0.10))
         filter_fns.append(has_good_average_sentence_length_by_swallow())
+        filter_fns.append(has_good_average_sentence_length_by_swallow())
         filter_fns.append(has_sentence_with_min_length())
         filter_fns.append(has_documents_with_min_length())
         filter_fns.append(has_valid_alphanum_fraction())
@@ -132,7 +133,6 @@ def reformat_and_filter_dataset(
     elif dataset_name == "cc":
         reformat_fn = reformat_data("text")
         # write me
-        rephrasing_fns.append(has_below_duplicate_line_ratio())
     elif dataset_name == "cuX":
         reformat_fn = reformat_data("text")
         # write me
@@ -154,13 +154,10 @@ def reformat_and_filter_dataset(
         dataset = dataset.map(map_fn, batched=False)
 
     def apply_rephrasing_fns(element):
-        # 全ての rephrasing_fn が true を返した場合にのみ true とする
         for rephrasing_fn in rephrasing_fns:
-            if not rephrasing_fn(element):  # rephrasing_fn が false を返した場合
-                return {
-                    "rephrasing": False
-                }  # 一つでも false があれば全体を false とする
-        return {"rephrasing": True}  # 全ての関数が true を返した場合のみ true を返す
+            if not rephrasing_fn(element):
+                return {"rephrasing": False}
+        return {"rephrasing": True}
 
     dataset = dataset.map(apply_rephrasing_fns, batched=False)
     return dataset.filter(is_not_empty())
