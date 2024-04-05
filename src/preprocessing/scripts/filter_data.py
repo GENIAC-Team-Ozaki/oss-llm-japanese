@@ -71,6 +71,7 @@ def reformat_and_filter_dataset(
     reformat_fn: Callable[..., dict[str, Any]]
     map_fns: list[Callable[..., dict[str, Any]]] = []
     filter_fns: list[Callable[..., bool]] = []
+    rephrasing_fns: list[Callable[..., bool]] = []
     if dataset_name == "ja_wiki":
         reformat_fn = reformat_data("text")
         map_fns.append(remove_wikipedia_footnote())
@@ -131,6 +132,7 @@ def reformat_and_filter_dataset(
     elif dataset_name == "cc":
         reformat_fn = reformat_data("text")
         # write me
+        rephrasing_fns.append(has_below_duplicate_line_ratio())
     elif dataset_name == "cuX":
         reformat_fn = reformat_data("text")
         # write me
@@ -150,6 +152,17 @@ def reformat_and_filter_dataset(
         dataset = dataset.filter(filter_fn)
     for map_fn in map_fns:
         dataset = dataset.map(map_fn, batched=False)
+
+    def apply_rephrasing_fns(element):
+        # 全ての rephrasing_fn が true を返した場合にのみ true とする
+        for rephrasing_fn in rephrasing_fns:
+            if not rephrasing_fn(element):  # rephrasing_fn が false を返した場合
+                return {
+                    "rephrasing": False
+                }  # 一つでも false があれば全体を false とする
+        return {"rephrasing": True}  # 全ての関数が true を返した場合のみ true を返す
+
+    dataset = dataset.map(apply_rephrasing_fns, batched=False)
     return dataset.filter(is_not_empty())
 
 
