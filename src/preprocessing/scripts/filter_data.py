@@ -20,7 +20,11 @@ from filters import (
     has_good_compression_ratio,
     has_valid_alphanum_fraction,
     has_valid_avg_line_length,
+    is_not_empty_url, # koga
     has_valid_domain,
+    is_not_blacklist_domain, # koga
+    is_not_additional_blacklist_domain, # koga
+    is_japanese_by_fasttext, # koga
     has_valid_extension,
     has_valid_max_line_length,
     is_japanese,
@@ -110,6 +114,11 @@ def reformat_and_filter_dataset(
         filter_fns.append(is_not_empty())
     elif dataset_name == "test":
         reformat_fn = reformat_data("text")
+        filter_fns.append(is_not_empty_url()) # koga
+        filter_fns.append(has_valid_domain()) # koga
+        filter_fns.append(is_not_blacklist_domain()) # koga
+        filter_fns.append(is_not_additional_blacklist_domain()) # koga
+        filter_fns.append(is_japanese_by_fasttext()) # koga
         filter_fns.append(has_below_duplicate_line_ratio())
         filter_fns.append(has_below_duplicate_paragraph_ratio())
         filter_fns.append(has_below_duplicate_line_char_ratio())
@@ -117,16 +126,16 @@ def reformat_and_filter_dataset(
         filter_fns.append(has_below_max_ngram_ratio(n=2, max_ratio=0.20))
         filter_fns.append(has_below_max_ngram_ratio(n=3, max_ratio=0.18))
         filter_fns.append(has_below_max_ngram_ratio(n=4, max_ratio=0.16))
-        filter_fns.append(has_below_repeated_ngram_ratio(n=5, max_ratio=0.15))
-        filter_fns.append(has_below_repeated_ngram_ratio(n=6, max_ratio=0.14))
-        filter_fns.append(has_below_repeated_ngram_ratio(n=7, max_ratio=0.13))
-        filter_fns.append(has_below_repeated_ngram_ratio(n=8, max_ratio=0.12))
-        filter_fns.append(has_below_repeated_ngram_ratio(n=9, max_ratio=0.11))
-        filter_fns.append(has_below_repeated_ngram_ratio(n=10, max_ratio=0.10))
-        filter_fns.append(has_good_average_sentence_length_by_swallow())
-        filter_fns.append(has_sentence_with_min_length())
-        filter_fns.append(has_documents_with_min_length())
-        filter_fns.append(has_valid_alphanum_fraction())
+        # filter_fns.append(has_below_repeated_ngram_ratio(n=5, max_ratio=0.15))
+        # filter_fns.append(has_below_repeated_ngram_ratio(n=6, max_ratio=0.14))
+        # filter_fns.append(has_below_repeated_ngram_ratio(n=7, max_ratio=0.13))
+        # filter_fns.append(has_below_repeated_ngram_ratio(n=8, max_ratio=0.12))
+        # filter_fns.append(has_below_repeated_ngram_ratio(n=9, max_ratio=0.11))
+        # filter_fns.append(has_below_repeated_ngram_ratio(n=10, max_ratio=0.10))
+        # filter_fns.append(has_good_average_sentence_length_by_swallow())
+        # filter_fns.append(has_sentence_with_min_length())
+        # filter_fns.append(has_documents_with_min_length())
+        # filter_fns.append(has_valid_alphanum_fraction())
         map_fns.append(mask_phone_and_email())
     elif dataset_name == "cc":
         reformat_fn = reformat_data("text")
@@ -205,12 +214,18 @@ def main() -> None:
         streaming=True,
     )
 
+    for split, ds in dataset.items():
+        count = sum(1 for _ in ds)
+        print(f"Before Dataset size: {count}")
+
     dataset = reformat_and_filter_dataset(
         dataset, args.DATASET_NAME, strict=args.strict
     )
 
     logger.info(f"Writing the reformatted data to {output_dir}.")
     for split, ds in dataset.items():
+        count = sum(1 for _ in ds)
+        print(f"After Dataset size: {count}")
         chunk_index = 0
         for batch in tqdm.tqdm(ds.iter(batch_size=CHUNK_SIZE)):
             output_file: pathlib.Path = output_dir.joinpath(

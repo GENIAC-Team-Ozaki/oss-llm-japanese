@@ -6,6 +6,9 @@ import re
 from typing import Any, Callable
 import collections
 from urllib.parse import urlparse
+import os # koga
+from pathlib import Path # koga
+import requests # koga
 
 import regex
 from hojichar import Document
@@ -18,7 +21,26 @@ from hojichar.filters.document_filters import (
     MaskPersonalInformation,
 )
 
+import fasttext # koga
+
 BASE_PATH = Path(__file__).parent
+
+def download_file(url: str, dest_folder: str):
+    filename = url.split('/')[-1]
+    filepath = Path(dest_folder) / filename
+    if not filepath.exists():
+        response = requests.get(url)
+        response.raise_for_status() 
+        os.makedirs(dest_folder, exist_ok=True)
+        with open(filepath, 'wb') as f:
+            f.write(response.content)
+
+url = "https://dl.fbaipublicfiles.com/fasttext/supervised-models/lid.176.bin"
+dest_folder = "dict"
+download_file(url, dest_folder)
+FASTTEXT_MODEL_PATH = 'dict/lid.176.bin' # koga
+fasttext_model = fasttext.load_model(FASTTEXT_MODEL_PATH) # koga
+
 
 
 def reformat_data(text_field: str) -> Callable[..., dict[str, Any]]:
@@ -29,6 +51,13 @@ def reformat_data(text_field: str) -> Callable[..., dict[str, Any]]:
         return {"text": text, "meta": meta}
 
     return reformat
+
+
+def is_not_empty_url() -> Callable[..., bool]:
+    def judge(example: dict[str, Any]) -> bool:
+        return example["meta"]["url"].strip() != ""
+
+    return judge
 
 
 def has_valid_domain() -> Callable[..., bool]:
@@ -42,6 +71,62 @@ def has_valid_domain() -> Callable[..., bool]:
         assert domain is not None
         tld = domain.split(".")[-1]
         return tld in valid_domains
+
+    return judge
+
+
+def is_not_blacklist_domain() -> Callable[..., bool]:
+    block_list_path = BASE_PATH.joinpath("dict/RefinedWeb_DomainBlocklist_selected.txt")
+    block_domains = set(block_list_path.read_text().splitlines())
+
+    def judge(example: dict[str, Any]) -> bool:
+        domain: typing.Optional[str] = urlparse(example["meta"]["url"]).hostname
+        assert domain is not None
+
+        # ドメインの正規化("www."を削除)
+        if domain.startswith('www.'):
+            domain = domain[4:]
+
+        # ドメインがblock_domainsにマッチする場合はFalseを返す
+        if domain in block_domains:
+            return False
+
+        return True
+    
+    return judge
+
+
+def is_not_additional_blacklist_domain() -> Callable[..., bool]:
+    block_list_path = BASE_PATH.joinpath("dict/additional_DomainBlocklist.txt")
+    block_domains = set(block_list_path.read_text().splitlines())
+
+    def judge(example: dict[str, Any]) -> bool:
+        domain: typing.Optional[str] = urlparse(example["meta"]["url"]).hostname
+        assert domain is not None
+
+        # ドメインがblock_domainsに部分一致する場合はFalseを返す
+        if any(blocked_domain in domain for blocked_domain in block_domains):
+            return False
+
+        return True
+    
+    return judge
+
+
+def is_japanese_by_fasttext() -> Callable[..., bool]:
+    def fasttext_preprocess_text(text: str) -> str:
+        text = re.sub(r'<[^>]+>', '', text)  # HTMLタグの除去
+        text = re.sub(r'[^\w\s]', '', text)  # 特殊文字の除去
+        text = text.translate(str.maketrans({chr(0xFF01 + i): chr(0x21 + i) for i in range(94)}))  # 全角文字を半角文字に変換
+        text = text.replace('\n', '')  # 改行文字の削除
+        return text
+
+    def judge(example: dict[str, Any]) -> bool:
+        text = example.get("text", "")  # 'text'キーを読み込む
+        processed_text = fasttext_preprocess_text(text)  # テキストの前処理
+        predictions = fasttext_model.predict(processed_text)  # 言語判定
+        language = predictions[0][0].split('__')[-1]  # 言語コードの抽出
+        return language == 'ja'  # 日本語であればTrueを返す
 
     return judge
 
