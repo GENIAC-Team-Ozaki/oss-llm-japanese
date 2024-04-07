@@ -75,6 +75,7 @@ def reformat_and_filter_dataset(
     reformat_fn: Callable[..., dict[str, Any]]
     map_fns: list[Callable[..., dict[str, Any]]] = []
     filter_fns: list[Callable[..., bool]] = []
+    rephrasing_fns: list[Callable[..., bool]] = []
     if dataset_name == "ja_wiki":
         reformat_fn = reformat_data("text")
         map_fns.append(remove_wikipedia_footnote())
@@ -162,6 +163,14 @@ def reformat_and_filter_dataset(
         dataset = dataset.filter(filter_fn)
     for map_fn in map_fns:
         dataset = dataset.map(map_fn, batched=False)
+
+    def apply_rephrasing_fns(element: dict[str, Any]) -> dict[str, bool]:
+        for rephrasing_fn in rephrasing_fns:
+            if not rephrasing_fn(element):
+                return {"rephrasing": True}
+        return {"rephrasing": False}
+
+    dataset = dataset.map(apply_rephrasing_fns, batched=False)
     return dataset.filter(is_not_empty())
 
 
