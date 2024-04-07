@@ -216,9 +216,6 @@ def main() -> None:
         data_files={k: str(v) for k, v in get_data_files(input_dir, "jsonl").items()},
         streaming=True,
     )
-    for split, ds in dataset.items():
-        count = sum(1 for _ in ds)
-        print(f"Before Dataset size: {count}")
 
     dataset = reformat_and_filter_dataset(
         dataset, args.DATASET_NAME, strict=args.strict
@@ -226,8 +223,6 @@ def main() -> None:
 
     logger.info(f"Writing the reformatted data to {output_dir}.")
     for split, ds in dataset.items():
-        count = sum(1 for _ in ds)
-        print(f"After Dataset size: {count}")
         chunk_index = 0
         for batch in tqdm.tqdm(ds.iter(batch_size=CHUNK_SIZE)):
             output_file: pathlib.Path = output_dir.joinpath(
