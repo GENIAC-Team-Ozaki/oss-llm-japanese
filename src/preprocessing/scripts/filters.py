@@ -6,9 +6,9 @@ import re
 from typing import Any, Callable
 import collections
 from urllib.parse import urlparse
-import os # koga
-from pathlib import Path # koga
-import requests # koga
+import os
+from pathlib import Path
+import requests
 
 import regex
 from hojichar import Document
@@ -20,8 +20,6 @@ from hojichar.filters.document_filters import (
     NgWordsFilterJa,
     MaskPersonalInformation,
 )
-
-import fasttext # koga
 
 BASE_PATH = Path(__file__).parent
 
@@ -35,11 +33,15 @@ def download_file(url: str, dest_folder: str):
         with open(filepath, 'wb') as f:
             f.write(response.content)
 
-url = "https://dl.fbaipublicfiles.com/fasttext/supervised-models/lid.176.bin"
-dest_folder = "dict"
-download_file(url, dest_folder)
-FASTTEXT_MODEL_PATH = 'dict/lid.176.bin' # koga
-fasttext_model = fasttext.load_model(FASTTEXT_MODEL_PATH) # koga
+try:
+    import fasttext
+    url = "https://dl.fbaipublicfiles.com/fasttext/supervised-models/lid.176.bin"
+    dest_folder = "dict"
+    download_file(url, dest_folder)
+    FASTTEXT_MODEL_PATH = 'dict/lid.176.bin'
+    fasttext_model = fasttext.load_model(FASTTEXT_MODEL_PATH)
+except ImportError:
+    fasttext = None
 
 
 
@@ -65,10 +67,15 @@ def has_valid_domain() -> Callable[..., bool]:
     valid_domains = set(dict_path.read_text().splitlines())
 
     def judge(example: dict[str, Any]) -> bool:
-        if example["meta"]["url"].startswith("https://ja.wikipedia.org/"):
-            return False
+        # URLがNoneまたは空文字列の場合はTrueを返す
+        if not example["meta"].get("url"):
+            return True
+
         domain: typing.Optional[str] = urlparse(example["meta"]["url"]).hostname
-        assert domain is not None
+        # ドメインが取得できない場合はTrueを返す（URLが不正な形式の場合を考慮）
+        if not domain:
+            return True
+
         tld = domain.split(".")[-1]
         return tld in valid_domains
 
@@ -80,8 +87,14 @@ def is_not_blacklist_domain() -> Callable[..., bool]:
     block_domains = set(block_list_path.read_text().splitlines())
 
     def judge(example: dict[str, Any]) -> bool:
+        # URLがNoneまたは空文字列の場合はTrueを返す
+        if not example["meta"].get("url"):
+            return True
+
         domain: typing.Optional[str] = urlparse(example["meta"]["url"]).hostname
-        assert domain is not None
+        # ドメインが取得できない場合はTrueを返す（URLが不正な形式の場合を考慮）
+        if not domain:
+            return True
 
         # ドメインの正規化("www."を削除)
         if domain.startswith('www.'):
@@ -101,8 +114,14 @@ def is_not_additional_blacklist_domain() -> Callable[..., bool]:
     block_domains = set(block_list_path.read_text().splitlines())
 
     def judge(example: dict[str, Any]) -> bool:
+        # URLがNoneまたは空文字列の場合はTrueを返す
+        if not example["meta"].get("url"):
+            return True
+
         domain: typing.Optional[str] = urlparse(example["meta"]["url"]).hostname
-        assert domain is not None
+        # ドメインが取得できない場合はTrueを返す（URLが不正な形式の場合を考慮）
+        if not domain:
+            return True
 
         # ドメインがblock_domainsに部分一致する場合はFalseを返す
         if any(blocked_domain in domain for blocked_domain in block_domains):
@@ -122,6 +141,10 @@ def is_japanese_by_fasttext() -> Callable[..., bool]:
         return text
 
     def judge(example: dict[str, Any]) -> bool:
+        # fasttextがNoneの場合、日本語判定せずに、Trueを返す
+        if fasttext is None:
+            return True
+
         text = example.get("text", "")  # 'text'キーを読み込む
         processed_text = fasttext_preprocess_text(text)  # テキストの前処理
         predictions = fasttext_model.predict(processed_text)  # 言語判定
