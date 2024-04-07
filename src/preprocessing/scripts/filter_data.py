@@ -20,7 +20,11 @@ from filters import (
     has_good_compression_ratio,
     has_valid_alphanum_fraction,
     has_valid_avg_line_length,
+    is_not_empty_url,
     has_valid_domain,
+    is_not_blacklist_domain,
+    is_not_additional_blacklist_domain,
+    is_japanese_by_fasttext,
     has_valid_extension,
     has_valid_max_line_length,
     is_japanese,
@@ -131,9 +135,17 @@ def reformat_and_filter_dataset(
     elif dataset_name == "cc":
         reformat_fn = reformat_data("text")
         # write me
+        filter_fns.append(is_not_empty_url())
+        filter_fns.append(has_valid_domain())
+        filter_fns.append(is_not_blacklist_domain())
+        filter_fns.append(is_not_additional_blacklist_domain())
+        filter_fns.append(is_japanese_by_fasttext())
     elif dataset_name == "cuX":
         reformat_fn = reformat_data("text")
         # write me
+        filter_fns.append(is_not_blacklist_domain())
+        filter_fns.append(is_not_additional_blacklist_domain())
+        filter_fns.append(is_japanese_by_fasttext())
     else:
         raise ValueError(f"Unknown dataset name: {dataset_name}.")
 
