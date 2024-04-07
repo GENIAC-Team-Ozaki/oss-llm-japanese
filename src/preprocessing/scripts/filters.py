@@ -486,8 +486,37 @@ def has_documents_with_min_length(min_length: int = 400) -> Callable[..., bool]:
 # 電話番号，メールアドレスをマスクする関数
 def mask_phone_and_email() -> Callable[..., dict[str, Any]]:
     mask_personal_info_filter = MaskPersonalInformation()
+
     def mask(example: dict[str, Any]) -> dict[str, Any]:
-        example["text"] = mask_personal_info_filter.apply(Document(example["text"])).text
+        example["text"] = mask_personal_info_filter.apply(
+            Document(example["text"])
+        ).text
         return example
 
     return mask
+
+
+# url表記を削除（日本語表記含む）
+def remove_urlj() -> Callable[..., dict[str, Any]]:
+    def urlj_sub(example: dict[str, Any]) -> dict[str, Any]:
+        urlj_pat = r"(https?://|www\.|/www\.|ftp:|url)[\p{L}\p{M}\w!\?/\+\-_~=;\.,\*&@#\$%\(\)'\[\]]+"
+        compiled_pattern = regex.compile(urlj_pat)
+        example["text"] = compiled_pattern.sub("", example["text"])
+        return example
+
+    return urlj_sub
+
+
+# 通常の日本語使用者に理解できない記号を削除
+def remove_strange() -> Callable[..., dict[str, Any]]:
+    def strange_sub(example: dict[str, Any]) -> dict[str, Any]:
+        strange_pat = (
+            r"[^\p{Script=Latin}\p{Number}\p{Punctuation}\p{Symbol}"
+            r"\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Han}]"
+        )
+
+        remove_strange = regex.compile(strange_pat)
+        example["text"] = remove_strange.sub("", example["text"])
+        return example
+
+    return strange_sub

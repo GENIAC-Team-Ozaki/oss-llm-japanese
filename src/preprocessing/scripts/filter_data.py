@@ -42,6 +42,8 @@ from filters import (
     has_sentence_with_min_length,
     has_documents_with_min_length,
     mask_phone_and_email,
+    remove_urlj,
+    remove_strange,
 )
 
 logger = logging.getLogger(__name__)
@@ -128,6 +130,8 @@ def reformat_and_filter_dataset(
         filter_fns.append(has_documents_with_min_length())
         filter_fns.append(has_valid_alphanum_fraction())
         map_fns.append(mask_phone_and_email())
+        filter_fns.append(remove_urlj())
+        filter_fns.append(remove_strange())
     else:
         raise ValueError(f"Unknown dataset name: {dataset_name}.")
 
