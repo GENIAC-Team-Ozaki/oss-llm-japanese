@@ -7,7 +7,6 @@ from typing import Any, Callable
 import collections
 from urllib.parse import urlparse
 import os
-from pathlib import Path
 import requests
 
 import regex
@@ -23,26 +22,28 @@ from hojichar.filters.document_filters import (
 
 BASE_PATH = Path(__file__).parent
 
+
 def download_file(url: str, dest_folder: str):
-    filename = url.split('/')[-1]
+    filename = url.split("/")[-1]
     filepath = Path(dest_folder) / filename
     if not filepath.exists():
         response = requests.get(url)
-        response.raise_for_status() 
+        response.raise_for_status()
         os.makedirs(dest_folder, exist_ok=True)
-        with open(filepath, 'wb') as f:
+        with open(filepath, "wb") as f:
             f.write(response.content)
+
 
 try:
     import fasttext
+
     url = "https://dl.fbaipublicfiles.com/fasttext/supervised-models/lid.176.bin"
     dest_folder = "dict"
     download_file(url, dest_folder)
-    FASTTEXT_MODEL_PATH = 'dict/lid.176.bin'
+    FASTTEXT_MODEL_PATH = "dict/lid.176.bin"
     fasttext_model = fasttext.load_model(FASTTEXT_MODEL_PATH)
 except ImportError:
     fasttext = None
-
 
 
 def reformat_data(text_field: str) -> Callable[..., dict[str, Any]]:
@@ -97,7 +98,7 @@ def is_not_blacklist_domain() -> Callable[..., bool]:
             return True
 
         # ドメインの正規化("www."を削除)
-        if domain.startswith('www.'):
+        if domain.startswith("www."):
             domain = domain[4:]
 
         # ドメインがblock_domainsにマッチする場合はFalseを返す
@@ -105,7 +106,7 @@ def is_not_blacklist_domain() -> Callable[..., bool]:
             return False
 
         return True
-    
+
     return judge
 
 
@@ -128,16 +129,18 @@ def is_not_additional_blacklist_domain() -> Callable[..., bool]:
             return False
 
         return True
-    
+
     return judge
 
 
 def is_japanese_by_fasttext() -> Callable[..., bool]:
     def fasttext_preprocess_text(text: str) -> str:
-        text = re.sub(r'<[^>]+>', '', text)  # HTMLタグの除去
-        text = re.sub(r'[^\w\s]', '', text)  # 特殊文字の除去
-        text = text.translate(str.maketrans({chr(0xFF01 + i): chr(0x21 + i) for i in range(94)}))  # 全角文字を半角文字に変換
-        text = text.replace('\n', '')  # 改行文字の削除
+        text = re.sub(r"<[^>]+>", "", text)  # HTMLタグの除去
+        text = re.sub(r"[^\w\s]", "", text)  # 特殊文字の除去
+        text = text.translate(
+            str.maketrans({chr(0xFF01 + i): chr(0x21 + i) for i in range(94)})
+        )  # 全角文字を半角文字に変換
+        text = text.replace("\n", "")  # 改行文字の削除
         return text
 
     def judge(example: dict[str, Any]) -> bool:
@@ -148,8 +151,8 @@ def is_japanese_by_fasttext() -> Callable[..., bool]:
         text = example.get("text", "")  # 'text'キーを読み込む
         processed_text = fasttext_preprocess_text(text)  # テキストの前処理
         predictions = fasttext_model.predict(processed_text)  # 言語判定
-        language = predictions[0][0].split('__')[-1]  # 言語コードの抽出
-        return language == 'ja'  # 日本語であればTrueを返す
+        language = predictions[0][0].split("__")[-1]  # 言語コードの抽出
+        return language == "ja"  # 日本語であればTrueを返す
 
     return judge
 
@@ -594,8 +597,37 @@ def has_documents_with_min_length(min_length: int = 400) -> Callable[..., bool]:
 # 電話番号，メールアドレスをマスクする関数
 def mask_phone_and_email() -> Callable[..., dict[str, Any]]:
     mask_personal_info_filter = MaskPersonalInformation()
+
     def mask(example: dict[str, Any]) -> dict[str, Any]:
-        example["text"] = mask_personal_info_filter.apply(Document(example["text"])).text
+        example["text"] = mask_personal_info_filter.apply(
+            Document(example["text"])
+        ).text
         return example
 
     return mask
+
+
+# url表記を削除（日本語表記含む）
+def remove_urlj() -> Callable[..., dict[str, Any]]:
+    def urlj_sub(example: dict[str, Any]) -> dict[str, Any]:
+        urlj_pat = r"(https?://|www\.|/www\.|ftp:|url)[\p{L}\p{M}\w!\?/\+\-_~=;\.,\*&@#\$%\(\)'\[\]]+"
+        compiled_pattern = regex.compile(urlj_pat)
+        example["text"] = compiled_pattern.sub("", example["text"])
+        return example
+
+    return urlj_sub
+
+
+# 通常の日本語使用者に理解できない記号を削除
+def remove_strange() -> Callable[..., dict[str, Any]]:
+    def strange_sub(example: dict[str, Any]) -> dict[str, Any]:
+        strange_pat = (
+            r"[^\p{Script=Latin}\p{Number}\p{Punctuation}\p{Symbol}"
+            r"\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Han}]"
+        )
+
+        remove_strange = regex.compile(strange_pat)
+        example["text"] = remove_strange.sub("", example["text"])
+        return example
+
+    return strange_sub
