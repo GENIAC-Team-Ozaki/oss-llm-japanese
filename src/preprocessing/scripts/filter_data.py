@@ -152,7 +152,7 @@ def reformat_and_filter_dataset(
     for map_fn in map_fns:
         dataset = dataset.map(map_fn, batched=False)
 
-    def apply_rephrasing_fns(element):
+    def apply_rephrasing_fns(element: dict[str, Any]) -> dict[str, bool]:
         for rephrasing_fn in rephrasing_fns:
             if not rephrasing_fn(element):
                 return {"rephrasing": True}
