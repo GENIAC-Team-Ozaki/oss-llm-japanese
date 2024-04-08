@@ -135,8 +135,8 @@ def reformat_and_filter_dataset(
         filter_fns.append(has_documents_with_min_length())
         filter_fns.append(has_valid_alphanum_fraction())
         map_fns.append(mask_phone_and_email())
-        filter_fns.append(remove_urlj())
-        filter_fns.append(remove_strange())
+        map_fns.append(remove_urlj())
+        map_fns.append(remove_strange())
     elif dataset_name == "cc":
         reformat_fn = reformat_data("text")
         # write me
