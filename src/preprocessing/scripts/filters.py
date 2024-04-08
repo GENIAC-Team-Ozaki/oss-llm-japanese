@@ -621,7 +621,7 @@ def remove_urlj() -> Callable[..., dict[str, Any]]:
 # 通常の日本語使用者に理解できない記号を削除
 def remove_strange() -> Callable[..., dict[str, Any]]:
     def strange_sub(example: dict[str, Any]) -> dict[str, Any]:
-        strange_pat = r"[^\p{N}\p{P}\p{S}\p{Latin}\p{Hiragana}\p{Katakana}\p{Han}\nー]"
+        strange_pat = r"[^\p{N}\p{P}\p{S}\p{Latin}\p{Hiragana}\p{Katakana}\p{Han}\nー ]"
         remove_strange = regex.compile(strange_pat)
         example["text"] = remove_strange.sub("", example["text"])
         return example
