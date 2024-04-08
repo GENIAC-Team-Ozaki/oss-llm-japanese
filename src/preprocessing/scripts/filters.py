@@ -610,7 +610,7 @@ def mask_phone_and_email() -> Callable[..., dict[str, Any]]:
 # url表記を削除（日本語表記含む）
 def remove_urlj() -> Callable[..., dict[str, Any]]:
     def urlj_sub(example: dict[str, Any]) -> dict[str, Any]:
-        urlj_pat = r"(https?://|www\.|/www\.|ftp:|url)[\p{L}\p{M}\w!\?/\+\-_~=;\.,\*&@#\$%\(\)'\[\]]+"
+        urlj_pat = r"(https?://|www\.|//|/www\.|ftp:|file:|url)[\p{L}\p{M}\w%\?\+\-\.\*\$\(\)\[\]/!_~=:;,&@#']+"
         compiled_pattern = regex.compile(urlj_pat)
         example["text"] = compiled_pattern.sub("", example["text"])
         return example
@@ -621,11 +621,7 @@ def remove_urlj() -> Callable[..., dict[str, Any]]:
 # 通常の日本語使用者に理解できない記号を削除
 def remove_strange() -> Callable[..., dict[str, Any]]:
     def strange_sub(example: dict[str, Any]) -> dict[str, Any]:
-        strange_pat = (
-            r"[^\p{Script=Latin}\p{Number}\p{Punctuation}\p{Symbol}"
-            r"\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Han}]"
-        )
-
+        strange_pat = r"[^\p{N}\p{P}\p{S}\p{Latin}\p{Hiragana}\p{Katakana}\p{Han}\nー]"
         remove_strange = regex.compile(strange_pat)
         example["text"] = remove_strange.sub("", example["text"])
         return example
