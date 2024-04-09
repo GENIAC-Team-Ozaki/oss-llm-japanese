@@ -624,6 +624,7 @@ def remove_strange() -> Callable[..., dict[str, Any]]:
         strange_pat = r"[^\p{N}\p{P}\p{S}\p{Latin}\p{Hiragana}\p{Katakana}\p{Han}\nー ]"
         remove_strange = regex.compile(strange_pat)
         example["text"] = remove_strange.sub("", example["text"])
+        example["text"] = example["text"].replace("�", "")
         return example
 
     return strange_sub
