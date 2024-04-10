@@ -287,58 +287,78 @@ def has_good_average_sentence_length(
     return judge
 
 
-def is_not_adult_content(max_allowed_num: int = 3) -> Callable[..., bool]:
+def is_not_adult_content(max_allowed_ratio: float = 0.05) -> Callable[..., bool]:
     dict_path = BASE_PATH.joinpath("dict/ja_adult_keywords.txt")
 
     # Monkey patch for hojichar
     def apply(self, doc):
-        if len(self.keyword_pat.findall(doc.text)) > max_allowed_num:
-            doc.is_rejected = True
         return doc
 
     content_filter = NgWordsFilterJa(dict_path, ignore_confused=True)
     content_filter.apply = apply.__get__(content_filter, NgWordsFilterJa)
 
     def judge(example: dict[str, Any]) -> bool:
-        doc = content_filter.apply(Document(example["text"]))
+        doc = Document(example["text"])
+        total_chars = len(doc.text)  # ドキュメントの全文字数を計算
+        keywords = content_filter.keyword_pat.findall(doc.text)
+        keywords_chars = sum(map(len, keywords))  # NG表現の文字数の合計を計算
+
+        # NG表現の文字数の割合を計算し、最大許容割合を超えているかチェック
+        doc.is_rejected = (
+            total_chars == 0 or (keywords_chars / total_chars) > max_allowed_ratio
+        )
         return not doc.is_rejected
 
     return judge
 
 
-def is_not_discrimination_content(max_allowed_num: int = 3) -> Callable[..., bool]:
+def is_not_discrimination_content(
+    max_allowed_ratio: float = 0.05,
+) -> Callable[..., bool]:
     dict_path = BASE_PATH.joinpath("dict/ja_discrimination_keywords.txt")
 
     # Monkey patch for hojichar
     def apply(self, doc):
-        if len(self.keyword_pat.findall(doc.text)) > max_allowed_num:
-            doc.is_rejected = True
         return doc
 
     content_filter = NgWordsFilterJa(dict_path, ignore_confused=True)
     content_filter.apply = apply.__get__(content_filter, NgWordsFilterJa)
 
     def judge(example: dict[str, Any]) -> bool:
-        doc = content_filter.apply(Document(example["text"]))
+        doc = Document(example["text"])
+        total_chars = len(doc.text)  # ドキュメントの全文字数を計算
+        keywords = content_filter.keyword_pat.findall(doc.text)
+        keywords_chars = sum(map(len, keywords))  # NG表現の文字数の合計を計算
+
+        # NG表現の文字数の割合を計算し、最大許容割合を超えているかチェック
+        doc.is_rejected = (
+            total_chars == 0 or (keywords_chars / total_chars) > max_allowed_ratio
+        )
         return not doc.is_rejected
 
     return judge
 
 
-def is_not_violence_content(max_allowed_num: int = 3) -> Callable[..., bool]:
+def is_not_violence_content(max_allowed_ratio: float = 0.05) -> Callable[..., bool]:
     dict_path = BASE_PATH.joinpath("dict/ja_violence_keywords.txt")
 
     # Monkey patch for hojichar
     def apply(self, doc):
-        if len(self.keyword_pat.findall(doc.text)) > max_allowed_num:
-            doc.is_rejected = True
         return doc
 
     content_filter = NgWordsFilterJa(dict_path, ignore_confused=True)
     content_filter.apply = apply.__get__(content_filter, NgWordsFilterJa)
 
     def judge(example: dict[str, Any]) -> bool:
-        doc = content_filter.apply(Document(example["text"]))
+        doc = Document(example["text"])
+        total_chars = len(doc.text)  # ドキュメントの全文字数を計算
+        keywords = content_filter.keyword_pat.findall(doc.text)
+        keywords_chars = sum(map(len, keywords))  # NG表現の文字数の合計を計算
+
+        # NG表現の文字数の割合を計算し、最大許容割合を超えているかチェック
+        doc.is_rejected = (
+            total_chars == 0 or (keywords_chars / total_chars) > max_allowed_ratio
+        )
         return not doc.is_rejected
 
     return judge

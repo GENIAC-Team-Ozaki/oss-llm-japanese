@@ -20,19 +20,12 @@ from filters import (
     has_good_compression_ratio,
     has_valid_alphanum_fraction,
     has_valid_avg_line_length,
-    is_not_empty_url,
     has_valid_domain,
-    is_not_blacklist_domain,
-    is_not_additional_blacklist_domain,
-    is_japanese_by_fasttext,
     has_valid_extension,
     has_valid_max_line_length,
     is_japanese,
     is_not_ad_content,
-    is_not_adult_content,
-    is_not_discrimination_content,
     is_not_empty,
-    is_not_violence_content,
     reformat_data,
     remove_empty_parenthesis,
     remove_wikipedia_footnote,
@@ -48,6 +41,9 @@ from filters import (
     mask_phone_and_email,
     remove_urlj,
     remove_strange,
+    is_not_adult_content,
+    is_not_discrimination_content,
+    is_not_violence_content,
 )
 
 logger = logging.getLogger(__name__)
@@ -140,17 +136,15 @@ def reformat_and_filter_dataset(
     elif dataset_name == "cc":
         reformat_fn = reformat_data("text")
         # write me
-        filter_fns.append(is_not_empty_url())
-        filter_fns.append(has_valid_domain())
-        filter_fns.append(is_not_blacklist_domain())
-        filter_fns.append(is_not_additional_blacklist_domain())
-        filter_fns.append(is_japanese_by_fasttext())
+        filter_fns.append(is_not_adult_content())
+        filter_fns.append(is_not_discrimination_content())
+        filter_fns.append(is_not_violence_content())
     elif dataset_name == "cuX":
         reformat_fn = reformat_data("text")
         # write me
-        filter_fns.append(is_not_blacklist_domain())
-        filter_fns.append(is_not_additional_blacklist_domain())
-        filter_fns.append(is_japanese_by_fasttext())
+        filter_fns.append(is_not_adult_content())
+        filter_fns.append(is_not_discrimination_content())
+        filter_fns.append(is_not_violence_content())
     else:
         raise ValueError(f"Unknown dataset name: {dataset_name}.")
 
