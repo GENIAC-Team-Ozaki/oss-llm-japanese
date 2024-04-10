@@ -48,6 +48,7 @@ from filters import (
     mask_phone_and_email,
     remove_urlj,
     remove_strange,
+    remove_copyright,
 )
 
 logger = logging.getLogger(__name__)
@@ -137,6 +138,7 @@ def reformat_and_filter_dataset(
         map_fns.append(mask_phone_and_email())
         map_fns.append(remove_urlj())
         map_fns.append(remove_strange())
+        map_fns.append(remove_copyright())
     elif dataset_name == "cc":
         reformat_fn = reformat_data("text")
         # write me
