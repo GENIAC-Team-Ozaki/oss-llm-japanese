@@ -594,6 +594,18 @@ def has_documents_with_min_length(min_length: int = 400) -> Callable[..., bool]:
     return judge
 
 
+# 文章中のひらがなの割合によるフィルタリング
+def has_valid_hiragana_fraction(allowed_hiragana_fraction: float = 0.2) -> Callable[..., bool]:
+    def judge(example: dict[str, Any]) -> bool:
+        text = example["text"]
+        hiragana_count = len(regex.findall(r"\p{Script=Hiragana}", text))
+        total_count = len(text)
+        hiragana_fraction = hiragana_count / total_count if total_count > 0 else 0.0
+        return hiragana_fraction >= allowed_hiragana_fraction
+
+    return judge
+
+
 # 文章中のカタカナの割合によるフィルタリング
 def has_valid_katakana_fraction(allowed_katakana_fraction: float = 0.5) -> Callable[..., bool]:
     def judge(example: dict[str, Any]) -> bool:
