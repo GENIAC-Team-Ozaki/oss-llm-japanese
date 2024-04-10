@@ -594,6 +594,18 @@ def has_documents_with_min_length(min_length: int = 400) -> Callable[..., bool]:
     return judge
 
 
+def has_valid_hiragana_fraction(hiragana_fraction: float = 0.2) -> Callable[..., bool]:
+    def judge(example: dict[str, Any]) -> bool:
+        text = example["text"]
+        p = re.compile("[ぁ-ん]+")
+        len_text = len(text)
+        len_hiragana = len("".join(p.findall(text)))
+        document_fraction = len_hiragana / len_text
+        return document_fraction >= hiragana_fraction
+
+    return judge
+
+
 # 電話番号，メールアドレスをマスクする関数
 def mask_phone_and_email() -> Callable[..., dict[str, Any]]:
     mask_personal_info_filter = MaskPersonalInformation()
