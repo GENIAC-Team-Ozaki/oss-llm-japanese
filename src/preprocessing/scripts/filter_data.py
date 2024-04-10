@@ -50,6 +50,7 @@ from filters import (
     mask_phone_and_email,
     remove_urlj,
     remove_strange,
+    has_valid_japanesenum_fraction,
 )
 
 logger = logging.getLogger(__name__)
@@ -136,6 +137,7 @@ def reformat_and_filter_dataset(
         filter_fns.append(has_sentence_with_min_length())
         filter_fns.append(has_documents_with_min_length())
         filter_fns.append(has_valid_alphanum_fraction())
+        filter_fns.append(has_valid_japanesenum_fraction())
         filter_fns.append(has_valid_hiragana_fraction())
         filter_fns.append(has_valid_katakana_fraction())
         map_fns.append(mask_phone_and_email())
@@ -152,6 +154,8 @@ def reformat_and_filter_dataset(
     elif dataset_name == "cuX":
         reformat_fn = reformat_data("text")
         # write me
+        filter_fns.append(is_not_empty_url())
+        filter_fns.append(has_valid_domain())
         filter_fns.append(is_not_blacklist_domain())
         filter_fns.append(is_not_additional_blacklist_domain())
         filter_fns.append(is_japanese_by_fasttext())
@@ -257,7 +261,8 @@ def main() -> None:
 
     end_time = time.time()
     logger.info(
-        f"Finished processing the dataset. Elapsed time: {end_time - start_time} [sec]"
+        f"Finished processing the dataset. Elapsed time: {
+            end_time - start_time} [sec]"
     )
 
 

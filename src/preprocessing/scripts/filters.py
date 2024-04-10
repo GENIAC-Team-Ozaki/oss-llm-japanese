@@ -205,6 +205,21 @@ def has_valid_alphanum_fraction(
     return judge
 
 
+def has_valid_japanesenum_fraction(
+    allowed_japanese_fraction: float = 0.5,
+) -> Callable[..., bool]:
+    def judge(example: dict[str, Any]) -> bool:
+        text = example["text"]
+        # 平仮名、カタカナ、漢字、句読点を含む正規表現
+        japanese_pat = regex.compile(r"[\p{Script=Hiragana}\p{Script=Katakana}\p{Han}\p{P}]")
+        japanese_count = len(japanese_pat.findall(text))
+        total_count = len(text)
+        japanese_fraction = japanese_count / total_count if total_count > 0 else 0.0
+        return japanese_fraction >= allowed_japanese_fraction
+
+    return judge
+
+
 def has_good_compression_ratio(
     min_score: float = 0.3, max_score: float = 0.7, length_factor: float = 0.0
 ) -> Callable[..., bool]:
