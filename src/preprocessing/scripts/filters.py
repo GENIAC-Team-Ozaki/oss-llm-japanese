@@ -594,14 +594,14 @@ def has_documents_with_min_length(min_length: int = 400) -> Callable[..., bool]:
     return judge
 
 
-def has_valid_hiragana_fraction(hiragana_fraction: float = 0.2) -> Callable[..., bool]:
+# 文章中のひらがなの割合によるフィルタリング
+def has_valid_hiragana_fraction(allowed_hiragana_fraction: float = 0.2) -> Callable[..., bool]:
     def judge(example: dict[str, Any]) -> bool:
         text = example["text"]
-        p = re.compile("[ぁ-ん]+")
-        len_text = len(text)
-        len_hiragana = len("".join(p.findall(text)))
-        document_fraction = len_hiragana / len_text
-        return document_fraction >= hiragana_fraction
+        hiragana_count = len(regex.findall(r"\p{Script=Hiragana}", text))
+        total_count = len(text)
+        hiragana_fraction = hiragana_count / total_count if total_count > 0 else 0.0
+        return hiragana_fraction >= allowed_hiragana_fraction
 
     return judge
 
