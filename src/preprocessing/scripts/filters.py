@@ -360,7 +360,8 @@ def is_not_violence_content(max_allowed_num: int = 3) -> Callable[..., bool]:
 
 
 def is_not_ad_content(max_allowed_num: int = 10) -> Callable[..., bool]:
-    content_filter = DiscardAds(max_allowed_num=max_allowed_num)
+    dict_path = BASE_PATH.joinpath("dict/advertisement_keywords_ja.txt")
+    content_filter = DiscardAds(dict_path=dict_path, max_allowed_num=max_allowed_num)
 
     def judge(example: dict[str, Any]) -> bool:
         doc = content_filter.apply(Document(example["text"]))
