@@ -667,3 +667,13 @@ def remove_strange() -> Callable[..., dict[str, Any]]:
         return example
 
     return strange_sub
+
+
+# コピーライトの削除
+def remove_copyright() -> Callable[..., dict[str, Any]]:
+    def copyright_sub(example: dict[str, Any]) -> dict[str, Any]:
+        copyright_pat = regex.compile(r"(?i)(copyright|©|\(c\)|（c）|copr\.)+")
+        example["text"] = copyright_pat.sub("", example["text"])
+        return example
+
+    return copyright_sub
