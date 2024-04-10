@@ -120,6 +120,11 @@ def reformat_and_filter_dataset(
         filter_fns.append(is_not_empty())
     elif dataset_name == "test":
         reformat_fn = reformat_data("text")
+        filter_fns.append(is_not_empty_url())
+        filter_fns.append(has_valid_domain())
+        filter_fns.append(is_not_blacklist_domain())
+        filter_fns.append(is_not_additional_blacklist_domain())
+        filter_fns.append(is_japanese_by_fasttext())
         filter_fns.append(has_below_duplicate_line_ratio())
         filter_fns.append(has_below_duplicate_paragraph_ratio())
         filter_fns.append(has_below_duplicate_line_char_ratio())
@@ -146,19 +151,9 @@ def reformat_and_filter_dataset(
     elif dataset_name == "cc":
         reformat_fn = reformat_data("text")
         # write me
-        filter_fns.append(is_not_empty_url())
-        filter_fns.append(has_valid_domain())
-        filter_fns.append(is_not_blacklist_domain())
-        filter_fns.append(is_not_additional_blacklist_domain())
-        filter_fns.append(is_japanese_by_fasttext())
     elif dataset_name == "cuX":
         reformat_fn = reformat_data("text")
         # write me
-        filter_fns.append(is_not_empty_url())
-        filter_fns.append(has_valid_domain())
-        filter_fns.append(is_not_blacklist_domain())
-        filter_fns.append(is_not_additional_blacklist_domain())
-        filter_fns.append(is_japanese_by_fasttext())
     else:
         raise ValueError(f"Unknown dataset name: {dataset_name}.")
 
@@ -261,8 +256,7 @@ def main() -> None:
 
     end_time = time.time()
     logger.info(
-        f"Finished processing the dataset. Elapsed time: {
-            end_time - start_time} [sec]"
+        f"Finished processing the dataset. Elapsed time: {end_time - start_time} [sec]"
     )
 
 
