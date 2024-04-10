@@ -594,14 +594,14 @@ def has_documents_with_min_length(min_length: int = 400) -> Callable[..., bool]:
     return judge
 
 
-def has_valid_katakana_fraction(katakana_fraction: float = 0.5) -> Callable[..., bool]:
+# 文章中のカタカナの割合によるフィルタリング
+def has_valid_katakana_fraction(allowed_katakana_fraction: float = 0.5) -> Callable[..., bool]:
     def judge(example: dict[str, Any]) -> bool:
         text = example["text"]
-        p = re.compile("[ァ-ヶ]+")
-        len_text = len(text)
-        len_katakana = len("".join(p.findall(text)))
-        document_fraction = len_katakana / len_text
-        return document_fraction < katakana_fraction
+        katakana_count = len(regex.findall(r"\p{Script=Katakana}", text))
+        total_count = len(text)
+        katakana_fraction = katakana_count / total_count if total_count > 0 else 0.0
+        return katakana_fraction <= allowed_katakana_fraction
 
     return judge
 
