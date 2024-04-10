@@ -46,6 +46,7 @@ from filters import (
     has_sentence_with_min_length,
     has_documents_with_min_length,
     has_valid_hiragana_fraction,
+    has_valid_katakana_fraction,
     mask_phone_and_email,
     remove_urlj,
     remove_strange,
@@ -136,6 +137,7 @@ def reformat_and_filter_dataset(
         filter_fns.append(has_documents_with_min_length())
         filter_fns.append(has_valid_alphanum_fraction())
         filter_fns.append(has_valid_hiragana_fraction())
+        filter_fns.append(has_valid_katakana_fraction())
         map_fns.append(mask_phone_and_email())
         map_fns.append(remove_urlj())
         map_fns.append(remove_strange())
