@@ -661,7 +661,7 @@ def remove_strange() -> Callable[..., dict[str, Any]]:
 # 文章中の省略記号の割合によるフィルタリング
 def has_valid_ending(max_ratio: float = 0.2) -> Callable[..., bool]:
     ellipsis_pattern = re.compile(
-        r"(?:\.{2,}|…|､{2,}|、{2,}|－{2,}|ー{2,}|─{2,}|﹣{2,}|−{2,}|⋯|؞{2,}|⋮)",
+        r"(?:\.{2,}|…|､{2,}|、{2,}|－{2,}|ー{2,}|─{2,}|﹣{2,}|−{2,}|⋯|؞{2,}|⋮)$",
         re.UNICODE,
     )
     keyword_pattern = re.compile(
