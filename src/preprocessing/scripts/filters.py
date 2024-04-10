@@ -205,6 +205,21 @@ def has_valid_alphanum_fraction(
     return judge
 
 
+def has_valid_japanesenum_fraction(
+    allowed_japanese_fraction: float = 0.5,
+) -> Callable[..., bool]:
+    def judge(example: dict[str, Any]) -> bool:
+        text = example["text"]
+        # 平仮名、カタカナ、漢字、句読点を含む正規表現
+        japanese_pat = regex.compile(r"[\p{Script=Hiragana}\p{Script=Katakana}\p{Han}\p{P}]")
+        japanese_count = len(japanese_pat.findall(text))
+        total_count = len(text)
+        japanese_fraction = japanese_count / total_count if total_count > 0 else 0.0
+        return japanese_fraction >= allowed_japanese_fraction
+
+    return judge
+
+
 def has_good_compression_ratio(
     min_score: float = 0.3, max_score: float = 0.7, length_factor: float = 0.0
 ) -> Callable[..., bool]:
@@ -610,6 +625,30 @@ def has_sentence_with_min_length(min_length: int = 200) -> Callable[..., bool]:
 def has_documents_with_min_length(min_length: int = 400) -> Callable[..., bool]:
     def judge(example: dict[str, Any]) -> bool:
         return len(example["text"]) >= min_length
+
+    return judge
+
+
+# 文章中のひらがなの割合によるフィルタリング
+def has_valid_hiragana_fraction(allowed_hiragana_fraction: float = 0.2) -> Callable[..., bool]:
+    def judge(example: dict[str, Any]) -> bool:
+        text = example["text"]
+        hiragana_count = len(regex.findall(r"\p{Script=Hiragana}", text))
+        total_count = len(text)
+        hiragana_fraction = hiragana_count / total_count if total_count > 0 else 0.0
+        return hiragana_fraction >= allowed_hiragana_fraction
+
+    return judge
+
+
+# 文章中のカタカナの割合によるフィルタリング
+def has_valid_katakana_fraction(allowed_katakana_fraction: float = 0.5) -> Callable[..., bool]:
+    def judge(example: dict[str, Any]) -> bool:
+        text = example["text"]
+        katakana_count = len(regex.findall(r"\p{Script=Katakana}", text))
+        total_count = len(text)
+        katakana_fraction = katakana_count / total_count if total_count > 0 else 0.0
+        return katakana_fraction <= allowed_katakana_fraction
 
     return judge
 
