@@ -24,6 +24,7 @@ from filters import (
     has_valid_domain,
     is_not_blacklist_domain,
     is_not_additional_blacklist_domain,
+    is_japanese_by_fasttext,
     has_valid_extension,
     has_valid_max_line_length,
     is_japanese,
@@ -50,6 +51,8 @@ from filters import (
     remove_urlj,
     remove_strange,
     has_valid_ending,
+    remove_copyright,
+    has_valid_japanesenum_fraction,
 )
 
 logger = logging.getLogger(__name__)
@@ -119,6 +122,11 @@ def reformat_and_filter_dataset(
         filter_fns.append(is_not_empty())
     elif dataset_name == "test":
         reformat_fn = reformat_data("text")
+        filter_fns.append(is_not_empty_url())
+        filter_fns.append(has_valid_domain())
+        filter_fns.append(is_not_blacklist_domain())
+        filter_fns.append(is_not_additional_blacklist_domain())
+        filter_fns.append(is_japanese_by_fasttext())
         filter_fns.append(has_below_duplicate_line_ratio())
         filter_fns.append(has_below_duplicate_paragraph_ratio())
         filter_fns.append(has_below_duplicate_line_char_ratio())
@@ -136,25 +144,20 @@ def reformat_and_filter_dataset(
         filter_fns.append(has_sentence_with_min_length())
         filter_fns.append(has_documents_with_min_length())
         filter_fns.append(has_valid_alphanum_fraction())
+        filter_fns.append(has_valid_japanesenum_fraction())
         filter_fns.append(has_valid_hiragana_fraction())
         filter_fns.append(has_valid_katakana_fraction())
         map_fns.append(mask_phone_and_email())
         map_fns.append(remove_urlj())
         map_fns.append(remove_strange())
+        map_fns.append(remove_copyright())
+        filter_fns.append(has_valid_ending(max_ratio=0.2))
     elif dataset_name == "cc":
         reformat_fn = reformat_data("text")
         # write me
-        filter_fns.append(is_not_empty_url())
-        filter_fns.append(has_valid_domain())
-        filter_fns.append(is_not_blacklist_domain())
-        filter_fns.append(is_not_additional_blacklist_domain())
-        filter_fns.append(has_valid_ending(max_ratio=0.2))
     elif dataset_name == "cuX":
         reformat_fn = reformat_data("text")
         # write me
-        filter_fns.append(is_not_blacklist_domain())
-        filter_fns.append(is_not_additional_blacklist_domain())
-        filter_fns.append(has_valid_ending(max_ratio=0.2))
     else:
         raise ValueError(f"Unknown dataset name: {dataset_name}.")
 
