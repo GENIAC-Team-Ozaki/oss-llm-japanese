@@ -4,7 +4,6 @@ import typing
 import zlib
 from pathlib import Path
 import re
-from typing import Any, Callable
 import collections
 from urllib.parse import urlparse
 import os
