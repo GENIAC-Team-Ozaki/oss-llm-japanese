@@ -50,6 +50,8 @@ from filters import (
     is_not_adult_content,
     is_not_discrimination_content,
     is_not_violence_content,
+    has_valid_ending,
+    remove_copyright,
     has_valid_japanesenum_fraction,
 )
 
@@ -151,6 +153,8 @@ def reformat_and_filter_dataset(
         filter_fns.append(is_not_adult_content())
         filter_fns.append(is_not_discrimination_content())
         filter_fns.append(is_not_violence_content())
+        map_fns.append(remove_copyright())
+        filter_fns.append(has_valid_ending(max_ratio=0.2))
     elif dataset_name == "cc":
         reformat_fn = reformat_data("text")
         # write me
@@ -260,7 +264,8 @@ def main() -> None:
 
     end_time = time.time()
     logger.info(
-        f"Finished processing the dataset. Elapsed time: {end_time - start_time} [sec]"
+        f"Finished processing the dataset. Elapsed time: \
+            {end_time - start_time} [sec]"
     )
 
 
