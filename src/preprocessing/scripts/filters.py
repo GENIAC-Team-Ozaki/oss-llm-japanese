@@ -1,9 +1,9 @@
+from typing import Callable, Any
 import math
 import typing
 import zlib
 from pathlib import Path
 import re
-from typing import Any, Callable
 import collections
 from urllib.parse import urlparse
 import os
@@ -610,7 +610,9 @@ def has_documents_with_min_length(min_length: int = 400) -> Callable[..., bool]:
 
 
 # 文章中のひらがなの割合によるフィルタリング
-def has_valid_hiragana_fraction(allowed_hiragana_fraction: float = 0.2) -> Callable[..., bool]:
+def has_valid_hiragana_fraction(
+    allowed_hiragana_fraction: float = 0.2,
+) -> Callable[..., bool]:
     def judge(example: dict[str, Any]) -> bool:
         text = example["text"]
         hiragana_count = len(regex.findall(r"\p{Script=Hiragana}", text))
@@ -622,7 +624,9 @@ def has_valid_hiragana_fraction(allowed_hiragana_fraction: float = 0.2) -> Calla
 
 
 # 文章中のカタカナの割合によるフィルタリング
-def has_valid_katakana_fraction(allowed_katakana_fraction: float = 0.5) -> Callable[..., bool]:
+def has_valid_katakana_fraction(
+    allowed_katakana_fraction: float = 0.5,
+) -> Callable[..., bool]:
     def judge(example: dict[str, Any]) -> bool:
         text = example["text"]
         katakana_count = len(regex.findall(r"\p{Script=Katakana}", text))
@@ -667,6 +671,35 @@ def remove_strange() -> Callable[..., dict[str, Any]]:
         return example
 
     return strange_sub
+
+
+# 文章中の省略記号の割合によるフィルタリング
+def has_valid_ending(max_ratio: float = 0.2) -> Callable[..., bool]:
+    ellipsis_pattern = re.compile(
+        r"(?:\.{2,}|…|､{2,}|、{2,}|－{2,}|ー{2,}|─{2,}|﹣{2,}|−{2,}|⋯|؞{2,}|⋮)$",
+        re.UNICODE,
+    )
+    keyword_pattern = re.compile(
+        r"(?:続(?:き|きを読む|く|ける)|etc|その他|もっと見る)$",
+        re.IGNORECASE | re.UNICODE,
+    )
+
+    def judge(example: dict[str, Any]) -> bool:
+        text = example["text"]
+        sentences = text.split("。")
+        ellipsis_count = 0
+        total_sentences = len(sentences)
+
+        for sentence in sentences:
+            if ellipsis_pattern.search(sentence) or keyword_pattern.search(
+                sentence.strip()
+            ):
+                ellipsis_count += 1
+
+        ellipsis_ratio = ellipsis_count / total_sentences
+        return ellipsis_ratio < max_ratio
+
+    return judge
 
 
 # コピーライトの削除

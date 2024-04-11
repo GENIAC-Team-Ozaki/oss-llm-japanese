@@ -50,6 +50,7 @@ from filters import (
     mask_phone_and_email,
     remove_urlj,
     remove_strange,
+    has_valid_ending,
     remove_copyright,
     has_valid_japanesenum_fraction,
 )
@@ -150,6 +151,7 @@ def reformat_and_filter_dataset(
         map_fns.append(remove_urlj())
         map_fns.append(remove_strange())
         map_fns.append(remove_copyright())
+        filter_fns.append(has_valid_ending(max_ratio=0.2))
     elif dataset_name == "cc":
         reformat_fn = reformat_data("text")
         # write me
@@ -258,7 +260,8 @@ def main() -> None:
 
     end_time = time.time()
     logger.info(
-        f"Finished processing the dataset. Elapsed time: {end_time - start_time} [sec]"
+        f"Finished processing the dataset. Elapsed time: \
+            {end_time - start_time} [sec]"
     )
 
 
