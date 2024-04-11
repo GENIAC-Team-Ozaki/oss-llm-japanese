@@ -307,21 +307,20 @@ def is_not_adult_content(max_allowed_ratio: float = 0.05) -> Callable[..., bool]
 
     # Monkey patch for hojichar
     def apply(self, doc):
+        keywords = self.keyword_pat.findall(doc.text)
+        keywords_chars = sum(len(keyword) for keyword in keywords)
+        total_chars = len(doc.text)
+        # NG表現の文字数の割合を計算し、閾値を超過する場合はrejectする
+        doc.is_rejected = (
+            total_chars == 0 or (keywords_chars / total_chars) > max_allowed_ratio
+        )
         return doc
 
     content_filter = NgWordsFilterJa(dict_path, ignore_confused=True)
     content_filter.apply = apply.__get__(content_filter, NgWordsFilterJa)
 
     def judge(example: dict[str, Any]) -> bool:
-        doc = Document(example["text"])
-        total_chars = len(doc.text)  # ドキュメントの全文字数を計算
-        keywords = content_filter.keyword_pat.findall(doc.text)
-        keywords_chars = sum(map(len, keywords))  # NG表現の文字数の合計を計算
-
-        # NG表現の文字数の割合を計算し、最大許容割合を超えているかチェック
-        doc.is_rejected = (
-            total_chars == 0 or (keywords_chars / total_chars) > max_allowed_ratio
-        )
+        doc = content_filter.apply(Document(example["text"]))
         return not doc.is_rejected
 
     return judge
@@ -334,21 +333,20 @@ def is_not_discrimination_content(
 
     # Monkey patch for hojichar
     def apply(self, doc):
+        keywords = self.keyword_pat.findall(doc.text)
+        keywords_chars = sum(len(keyword) for keyword in keywords)
+        total_chars = len(doc.text)
+        # NG表現の文字数の割合を計算し、閾値を超過する場合はrejectする
+        doc.is_rejected = (
+            total_chars == 0 or (keywords_chars / total_chars) > max_allowed_ratio
+        )
         return doc
 
     content_filter = NgWordsFilterJa(dict_path, ignore_confused=True)
     content_filter.apply = apply.__get__(content_filter, NgWordsFilterJa)
 
     def judge(example: dict[str, Any]) -> bool:
-        doc = Document(example["text"])
-        total_chars = len(doc.text)  # ドキュメントの全文字数を計算
-        keywords = content_filter.keyword_pat.findall(doc.text)
-        keywords_chars = sum(map(len, keywords))  # NG表現の文字数の合計を計算
-
-        # NG表現の文字数の割合を計算し、最大許容割合を超えているかチェック
-        doc.is_rejected = (
-            total_chars == 0 or (keywords_chars / total_chars) > max_allowed_ratio
-        )
+        doc = content_filter.apply(Document(example["text"]))
         return not doc.is_rejected
 
     return judge
@@ -359,21 +357,20 @@ def is_not_violence_content(max_allowed_ratio: float = 0.05) -> Callable[..., bo
 
     # Monkey patch for hojichar
     def apply(self, doc):
+        keywords = self.keyword_pat.findall(doc.text)
+        keywords_chars = sum(len(keyword) for keyword in keywords)
+        total_chars = len(doc.text)
+        # NG表現の文字数の割合を計算し、閾値を超過する場合はrejectする
+        doc.is_rejected = (
+            total_chars == 0 or (keywords_chars / total_chars) > max_allowed_ratio
+        )
         return doc
 
     content_filter = NgWordsFilterJa(dict_path, ignore_confused=True)
     content_filter.apply = apply.__get__(content_filter, NgWordsFilterJa)
 
     def judge(example: dict[str, Any]) -> bool:
-        doc = Document(example["text"])
-        total_chars = len(doc.text)  # ドキュメントの全文字数を計算
-        keywords = content_filter.keyword_pat.findall(doc.text)
-        keywords_chars = sum(map(len, keywords))  # NG表現の文字数の合計を計算
-
-        # NG表現の文字数の割合を計算し、最大許容割合を超えているかチェック
-        doc.is_rejected = (
-            total_chars == 0 or (keywords_chars / total_chars) > max_allowed_ratio
-        )
+        doc = content_filter.apply(Document(example["text"]))
         return not doc.is_rejected
 
     return judge

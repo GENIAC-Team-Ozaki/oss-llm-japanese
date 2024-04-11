@@ -148,18 +148,16 @@ def reformat_and_filter_dataset(
         map_fns.append(mask_phone_and_email())
         map_fns.append(remove_urlj())
         map_fns.append(remove_strange())
+        filter_fns.append(is_not_adult_content())
+        filter_fns.append(is_not_discrimination_content())
+        filter_fns.append(is_not_violence_content())
     elif dataset_name == "cc":
         reformat_fn = reformat_data("text")
         # write me
-        filter_fns.append(is_not_adult_content())
-        filter_fns.append(is_not_discrimination_content())
-        filter_fns.append(is_not_violence_content())
     elif dataset_name == "cuX":
         reformat_fn = reformat_data("text")
         # write me
-        filter_fns.append(is_not_adult_content())
-        filter_fns.append(is_not_discrimination_content())
-        filter_fns.append(is_not_violence_content())
+
     else:
         raise ValueError(f"Unknown dataset name: {dataset_name}.")
 
