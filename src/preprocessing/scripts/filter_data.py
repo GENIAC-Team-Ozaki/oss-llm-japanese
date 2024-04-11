@@ -146,7 +146,7 @@ def reformat_and_filter_dataset(
         filter_fns.append(has_valid_japanesenum_fraction())
         filter_fns.append(has_valid_hiragana_fraction())
         filter_fns.append(has_valid_katakana_fraction())
-        filter_fns.append(is_not_ad_content(2))
+        filter_fns.append(is_not_ad_content(max_allowed_num=8))
         map_fns.append(mask_phone_and_email())
         map_fns.append(remove_urlj())
         map_fns.append(remove_strange())
