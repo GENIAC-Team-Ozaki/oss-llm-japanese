@@ -29,10 +29,7 @@ from filters import (
     has_valid_max_line_length,
     is_japanese,
     is_not_ad_content,
-    is_not_adult_content,
-    is_not_discrimination_content,
     is_not_empty,
-    is_not_violence_content,
     reformat_data,
     remove_empty_parenthesis,
     remove_wikipedia_footnote,
@@ -50,6 +47,9 @@ from filters import (
     mask_phone_and_email,
     remove_urlj,
     remove_strange,
+    is_not_adult_content,
+    is_not_discrimination_content,
+    is_not_violence_content,
     has_valid_ending,
     remove_copyright,
     has_valid_japanesenum_fraction,
@@ -150,6 +150,9 @@ def reformat_and_filter_dataset(
         map_fns.append(mask_phone_and_email())
         map_fns.append(remove_urlj())
         map_fns.append(remove_strange())
+        filter_fns.append(is_not_adult_content())
+        filter_fns.append(is_not_discrimination_content())
+        filter_fns.append(is_not_violence_content())
         map_fns.append(remove_copyright())
         filter_fns.append(has_valid_ending(max_ratio=0.2))
     elif dataset_name == "cc":
@@ -158,6 +161,7 @@ def reformat_and_filter_dataset(
     elif dataset_name == "cuX":
         reformat_fn = reformat_data("text")
         # write me
+
     else:
         raise ValueError(f"Unknown dataset name: {dataset_name}.")
 
