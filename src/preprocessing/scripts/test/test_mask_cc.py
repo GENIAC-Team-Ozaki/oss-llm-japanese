@@ -46,11 +46,6 @@ def main():
     masked_list = []
     for item in parquet_data:
         if item["text"] != text_dict[item["meta"]["curid"]]:
-            print(item["meta"]["curid"])
-            print(item["text"])
-            print("#################################################################")
-            print(text_dict[item["meta"]["curid"]])
-            break
             masked_list.append(item)
 
     print(len(jsonl_data), "件中，マスクされたデータの数:", len(masked_list))
