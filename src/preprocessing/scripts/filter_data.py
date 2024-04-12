@@ -246,10 +246,10 @@ def reformat_and_filter_dataset(
     else:
         raise ValueError
     dataset = dataset.map(remove_columns=list(set(columns) - {"text", "meta"}))
-    for filter_fn in filter_fns:
-        dataset = dataset.filter(filter_fn)
     for map_fn in map_fns:
         dataset = dataset.map(map_fn, batched=False)
+    for filter_fn in filter_fns:
+        dataset = dataset.filter(filter_fn)
 
     def apply_rephrasing_fns(element: dict[str, Any]) -> dict[str, bool]:
         for rephrasing_fn in rephrasing_fns:
