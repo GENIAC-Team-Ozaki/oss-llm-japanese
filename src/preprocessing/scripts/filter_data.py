@@ -202,8 +202,6 @@ def reformat_and_filter_dataset(
         map_fns.append(remove_strange())
         map_fns.append(remove_copyright())
         # URLフィルタリング
-        filter_fns.append(is_not_empty_url())
-        filter_fns.append(has_valid_domain())
         filter_fns.append(is_not_blacklist_domain())
         filter_fns.append(is_not_additional_blacklist_domain())
         filter_fns.append(is_japanese_by_fasttext())
