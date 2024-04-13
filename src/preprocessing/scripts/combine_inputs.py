@@ -51,29 +51,29 @@ def main() -> None:
     file_names = []
 
     while True:
-        file_name = input(f"結合したいjsonlファイルの、input_dirディレクトリ内のファイル名を入力してください（例：CC_train_10000.jsonl）（完了する場合は'end'）: ")
+        file_name = input(f"結合したいjsonlファイルの、input_dirディレクトリ内のファイル名を入力してください。\n（例：CC_train_10000.jsonl）（完了する場合は'end'）: ")
         if file_name == "end":
             break
         full_path = input_dir / file_name
         if not full_path.exists():
-            logger.error(f"ファイルが見つかりません。再度入力してください。File {str(full_path)}")
+            logger.error(f"ファイルが見つかりません。再度入力してください。\n    File:{str(full_path)}")
             continue
         if full_path.suffix != ".jsonl":
-            logger.error(f"拡張子が.jsonlではありません。再度入力してください. File: {str(full_path)}")
+            logger.error(f"拡張子が.jsonlではありません。再度入力してください。\n    File:{str(full_path)}")
             continue
         file_names.append(file_name)
         file_content = load_jsonl(full_path)
         files_content.extend(file_content)
-        logger.info(f"File {full_path}が追加されました。")
+        logger.info(f"ファイルが追加されました。\n    File {full_path}")
 
-    noext_file_names = [str(n).rstrip(".jsonl") for n in file_names]
+    noext_file_names = [pathlib.Path(n).stem for n in file_names]
     output_file_name = f"combined_train_of_{'_'.join(noext_file_names)}.jsonl"
     output_full_path = output_dir / output_file_name
     save_jsonl(files_content, output_full_path)
     # with open(output_full_path, 'w') as output_file:
     #     for content in files_content:
     #         output_file.write(json.dumps(content) + '\n')
-    logger.info(f"結合されたファイル一覧:\n {file_names}")
+    logger.info(f"結合されたファイル一覧: {file_names}")
     logger.info(f"入力されたファイルを結合したjsonlの内容が {output_full_path} に保存されました。")
 
 
