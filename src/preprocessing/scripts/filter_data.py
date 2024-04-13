@@ -20,15 +20,16 @@ from filters import (
     has_good_compression_ratio,
     has_valid_alphanum_fraction,
     has_valid_avg_line_length,
+    is_not_empty_url,
     has_valid_domain,
+    is_not_blacklist_domain,
+    is_not_additional_blacklist_domain,
+    is_japanese_by_fasttext,
     has_valid_extension,
     has_valid_max_line_length,
     is_japanese,
     is_not_ad_content,
-    is_not_adult_content,
-    is_not_discrimination_content,
     is_not_empty,
-    is_not_violence_content,
     reformat_data,
     remove_empty_parenthesis,
     remove_wikipedia_footnote,
@@ -41,6 +42,17 @@ from filters import (
     has_good_average_sentence_length_by_swallow,
     has_sentence_with_min_length,
     has_documents_with_min_length,
+    has_valid_hiragana_fraction,
+    has_valid_katakana_fraction,
+    mask_phone_and_email,
+    remove_urlj,
+    remove_strange,
+    is_not_adult_content,
+    is_not_discrimination_content,
+    is_not_violence_content,
+    has_valid_ending,
+    remove_copyright,
+    has_valid_japanesenum_fraction,
 )
 
 logger = logging.getLogger(__name__)
@@ -70,6 +82,7 @@ def reformat_and_filter_dataset(
     reformat_fn: Callable[..., dict[str, Any]]
     map_fns: list[Callable[..., dict[str, Any]]] = []
     filter_fns: list[Callable[..., bool]] = []
+    rephrasing_fns: list[Callable[..., bool]] = []
     if dataset_name == "ja_wiki":
         reformat_fn = reformat_data("text")
         map_fns.append(remove_wikipedia_footnote())
@@ -109,6 +122,11 @@ def reformat_and_filter_dataset(
         filter_fns.append(is_not_empty())
     elif dataset_name == "test":
         reformat_fn = reformat_data("text")
+        filter_fns.append(is_not_empty_url())
+        filter_fns.append(has_valid_domain())
+        filter_fns.append(is_not_blacklist_domain())
+        filter_fns.append(is_not_additional_blacklist_domain())
+        filter_fns.append(is_japanese_by_fasttext())
         filter_fns.append(has_below_duplicate_line_ratio())
         filter_fns.append(has_below_duplicate_paragraph_ratio())
         filter_fns.append(has_below_duplicate_line_char_ratio())
@@ -126,6 +144,25 @@ def reformat_and_filter_dataset(
         filter_fns.append(has_sentence_with_min_length())
         filter_fns.append(has_documents_with_min_length())
         filter_fns.append(has_valid_alphanum_fraction())
+        filter_fns.append(has_valid_japanesenum_fraction())
+        filter_fns.append(has_valid_hiragana_fraction())
+        filter_fns.append(has_valid_katakana_fraction())
+        filter_fns.append(is_not_ad_content(max_allowed_num=8))
+        map_fns.append(mask_phone_and_email())
+        map_fns.append(remove_urlj())
+        map_fns.append(remove_strange())
+        filter_fns.append(is_not_adult_content())
+        filter_fns.append(is_not_discrimination_content())
+        filter_fns.append(is_not_violence_content())
+        map_fns.append(remove_copyright())
+        filter_fns.append(has_valid_ending(max_ratio=0.2))
+    elif dataset_name == "cc":
+        reformat_fn = reformat_data("text")
+        # write me
+    elif dataset_name == "cuX":
+        reformat_fn = reformat_data("text")
+        # write me
+
     else:
         raise ValueError(f"Unknown dataset name: {dataset_name}.")
 
@@ -142,6 +179,14 @@ def reformat_and_filter_dataset(
         dataset = dataset.filter(filter_fn)
     for map_fn in map_fns:
         dataset = dataset.map(map_fn, batched=False)
+
+    def apply_rephrasing_fns(element: dict[str, Any]) -> dict[str, bool]:
+        for rephrasing_fn in rephrasing_fns:
+            if not rephrasing_fn(element):
+                return {"rephrasing": True}
+        return {"rephrasing": False}
+
+    dataset = dataset.map(apply_rephrasing_fns, batched=False)
     return dataset.filter(is_not_empty())
 
 
@@ -150,7 +195,16 @@ def main() -> None:
     parser.add_argument(
         "DATASET_NAME",
         type=str,
-        choices=["ja_wiki", "en_wiki", "ja_cc", "en_pile", "code_stack", "test"],
+        choices=[
+            "ja_wiki",
+            "en_wiki",
+            "ja_cc",
+            "en_pile",
+            "code_stack",
+            "test",
+            "cc",
+            "cuX",
+        ],
         help="Dataset name",
     )
     parser.add_argument(
@@ -211,7 +265,8 @@ def main() -> None:
 
     end_time = time.time()
     logger.info(
-        f"Finished processing the dataset. Elapsed time: {end_time - start_time} [sec]"
+        f"Finished processing the dataset. Elapsed time: \
+            {end_time - start_time} [sec]"
     )
 
 
