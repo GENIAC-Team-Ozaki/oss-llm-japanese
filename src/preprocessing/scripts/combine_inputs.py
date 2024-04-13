@@ -3,6 +3,8 @@ from argparse import ArgumentParser
 import logging
 import pathlib
 
+# 入力ディレクトリ内の指定したjsonlファイルを結合し、出力ディレクトリに出力する
+
 
 def load_jsonl(file_path):
     data = []
