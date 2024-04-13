@@ -35,20 +35,20 @@ def main() -> None:
         type=str,
         help="Path to the output directory.",
     )
-    parser.add_argument(
-        "--output_file_name",
-        type=str,
-        default="combined_train.jsonl",
-        help="Name of the output file which combines all input files. Default is 'combined_train.jsonl'."
-    )
+    # parser.add_argument(
+    #     "--output_file_name",
+    #     type=str,
+    #     help="Name of the output file which combines all input files."
+    # )
 
     args = parser.parse_args()
 
     input_dir: pathlib.Path = pathlib.Path(args.input_dir)
     output_dir: pathlib.Path = pathlib.Path(args.output_dir)
-    output_file_name: str = str(args.output_file_name)
+    # output_file_name: str = str(args.output_file_name)
     output_dir.mkdir(parents=True, exist_ok=True)
     files_content = []
+    file_names = []
 
     while True:
         file_name = input(f"結合したいjsonlファイルの、input_dirディレクトリ内のファイル名を入力してください（例：CC_train_10000.jsonl）（完了する場合は'end'）: ")
@@ -56,18 +56,24 @@ def main() -> None:
             break
         full_path = input_dir / file_name
         if not full_path.exists():
-            logger.error(f"File {str(full_path)}が見つかりません。再度入力してください。")
+            logger.error(f"ファイルが見つかりません。再度入力してください。File {str(full_path)}")
             continue
+        if full_path.suffix != ".jsonl":
+            logger.error(f"拡張子が.jsonlではありません。再度入力してください. File: {str(full_path)}")
+            continue
+        file_names.append(file_name)
         file_content = load_jsonl(full_path)
         files_content.extend(file_content)
         logger.info(f"File {full_path}が追加されました。")
 
+    noext_file_names = [str(n).rstrip(".jsonl") for n in file_names]
+    output_file_name = f"combined_train_of_{'_'.join(noext_file_names)}.jsonl"
     output_full_path = output_dir / output_file_name
     save_jsonl(files_content, output_full_path)
     # with open(output_full_path, 'w') as output_file:
     #     for content in files_content:
     #         output_file.write(json.dumps(content) + '\n')
-
+    logger.info(f"結合されたファイル一覧:\n {file_names}")
     logger.info(f"入力されたファイルを結合したjsonlの内容が {output_full_path} に保存されました。")
 
 
