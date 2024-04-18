@@ -231,6 +231,41 @@ def reformat_and_filter_dataset(
         rephrasing_fns.append(has_sentence_with_min_length())
         rephrasing_fns.append(has_documents_with_min_length())
         rephrasing_fns.append(is_not_ad_content(max_allowed_num=8))
+    elif dataset_name == "ja2010":
+        reformat_fn = reformat_data("text")
+        # 前処理
+        map_fns.append(mask_phone_and_email())
+        map_fns.append(remove_urlj())
+        map_fns.append(remove_strange())
+        map_fns.append(remove_copyright())
+        # URLフィルタリング
+        filter_fns.append(is_japanese_by_fasttext())
+        # ルールベースフィルタリング① アダルト系などの有害コンテンツや情報量が少なすぎる文章の削除
+        filter_fns.append(has_below_duplicate_line_ratio())
+        filter_fns.append(has_below_duplicate_paragraph_ratio())
+        filter_fns.append(has_below_duplicate_line_char_ratio())
+        filter_fns.append(has_below_duplicate_paragraph_char_ratio())
+        filter_fns.append(has_below_max_ngram_ratio(n=2, max_ratio=0.20))
+        filter_fns.append(has_below_max_ngram_ratio(n=3, max_ratio=0.18))
+        filter_fns.append(has_below_max_ngram_ratio(n=4, max_ratio=0.16))
+        filter_fns.append(has_below_repeated_ngram_ratio(n=5, max_ratio=0.35))
+        filter_fns.append(has_below_repeated_ngram_ratio(n=6, max_ratio=0.35))
+        filter_fns.append(has_below_repeated_ngram_ratio(n=7, max_ratio=0.30))
+        filter_fns.append(has_below_repeated_ngram_ratio(n=8, max_ratio=0.25))
+        filter_fns.append(has_below_repeated_ngram_ratio(n=9, max_ratio=0.25))
+        filter_fns.append(has_below_repeated_ngram_ratio(n=10, max_ratio=0.10))
+        filter_fns.append(has_valid_japanesenum_fraction())
+        filter_fns.append(has_valid_hiragana_fraction(allowed_hiragana_fraction=0.10))
+        filter_fns.append(has_valid_katakana_fraction())
+        filter_fns.append(is_not_adult_content())
+        filter_fns.append(is_not_discrimination_content())
+        filter_fns.append(is_not_violence_content())
+        filter_fns.append(has_valid_ending(max_ratio=0.2))
+        # ルールベースフィルタリング② キーワードの羅列などで内容は有益だが形式が悪い文章をRepharasingへ回す
+        rephrasing_fns.append(has_good_average_sentence_length_by_swallow())
+        rephrasing_fns.append(has_sentence_with_min_length())
+        rephrasing_fns.append(has_documents_with_min_length())
+        rephrasing_fns.append(is_not_ad_content(max_allowed_num=8))
     else:
         raise ValueError(f"Unknown dataset name: {dataset_name}.")
 
@@ -272,6 +307,7 @@ def main() -> None:
             "test",
             "cc",
             "cuX",
+            "ja2010"
         ],
         help="Dataset name",
     )
