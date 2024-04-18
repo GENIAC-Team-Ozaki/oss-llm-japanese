@@ -50,6 +50,8 @@ def reformat_data(text_field: str) -> Callable[..., dict[str, Any]]:
     def reformat(example: dict[str, Any]) -> dict[str, Any]:
         text = example[text_field]
         meta = example.get("meta", {})
+        if not meta:
+            meta['dummy_field'] = None
         meta.update({k: v for k, v in example.items() if k not in {text_field, "meta"}})
         return {"text": text, "meta": meta}
 
