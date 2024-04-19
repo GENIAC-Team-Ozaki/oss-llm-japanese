@@ -51,6 +51,8 @@ def reformat_data(text_field: str) -> Callable[..., dict[str, Any]]:
         text = example[text_field]
         meta = example.get("meta", {})
         meta.update({k: v for k, v in example.items() if k not in {text_field, "meta"}})
+        if not meta:
+            meta['dummy_field'] = None
         return {"text": text, "meta": meta}
 
     return reformat
@@ -302,12 +304,17 @@ def has_good_average_sentence_length(
     return judge
 
 
-def is_not_adult_content(max_allowed_ratio: float = 0.05) -> Callable[..., bool]:
+def is_not_adult_content(
+    max_allowed_ratio: float = 0.05, max_allowed_num: int = 100
+) -> Callable[..., bool]:
     dict_path = BASE_PATH.joinpath("dict/ja_adult_keywords.txt")
 
     # Monkey patch for hojichar
     def apply(self, doc):
         keywords = self.keyword_pat.findall(doc.text)
+        if len(keywords) > max_allowed_num:
+            doc.is_rejected = True
+            return doc
         keywords_chars = sum(len(keyword) for keyword in keywords)
         total_chars = len(doc.text)
         # NG表現の文字数の割合を計算し、閾値を超過する場合はrejectする
@@ -327,13 +334,16 @@ def is_not_adult_content(max_allowed_ratio: float = 0.05) -> Callable[..., bool]
 
 
 def is_not_discrimination_content(
-    max_allowed_ratio: float = 0.05,
+    max_allowed_ratio: float = 0.05, max_allowed_num: int = 20
 ) -> Callable[..., bool]:
     dict_path = BASE_PATH.joinpath("dict/ja_discrimination_keywords.txt")
 
     # Monkey patch for hojichar
     def apply(self, doc):
         keywords = self.keyword_pat.findall(doc.text)
+        if len(keywords) > max_allowed_num:
+            doc.is_rejected = True
+            return doc
         keywords_chars = sum(len(keyword) for keyword in keywords)
         total_chars = len(doc.text)
         # NG表現の文字数の割合を計算し、閾値を超過する場合はrejectする
@@ -352,12 +362,17 @@ def is_not_discrimination_content(
     return judge
 
 
-def is_not_violence_content(max_allowed_ratio: float = 0.05) -> Callable[..., bool]:
+def is_not_violence_content(
+    max_allowed_ratio: float = 0.0, max_allowed_num: int = 15
+) -> Callable[..., bool]:
     dict_path = BASE_PATH.joinpath("dict/ja_violence_keywords.txt")
 
     # Monkey patch for hojichar
     def apply(self, doc):
         keywords = self.keyword_pat.findall(doc.text)
+        if len(keywords) > max_allowed_num:
+            doc.is_rejected = True
+            return doc
         keywords_chars = sum(len(keyword) for keyword in keywords)
         total_chars = len(doc.text)
         # NG表現の文字数の割合を計算し、閾値を超過する場合はrejectする
