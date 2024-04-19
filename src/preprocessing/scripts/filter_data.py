@@ -58,7 +58,7 @@ from filters import (
 logger = logging.getLogger(__name__)
 disable_caching()
 
-CHUNK_SIZE = 100_000
+CHUNK_SIZE = 10_000
 
 
 def get_data_files(search_dir: pathlib.Path, ext: str) -> dict[Split, pathlib.Path]:
